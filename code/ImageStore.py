@@ -9,14 +9,14 @@ class ImageStore():
 
     def add(self, image, saveThisImage) :
         if saveThisImage :
-            image.save("Lightning" + str(self.picCount) + ".jpg")
+            image.save("..\\detectedLightning\\Lightning" + str(self.picCount) + ".jpg")
             self.picCount+=1
         self.imageQueue.put(image)
         if (self.imageQueue.full()):
             self.imageQueue.get()
 
     def SaveImageQueue(self):
-        dirName = ".\\Save%d"%self.safeDirCount
+        dirName = "..\\SavedFrames\\Save%d"%self.safeDirCount
         if not os.path.isdir(dirName):
             os.makedirs(dirName)
         self.safeDirCount+=1

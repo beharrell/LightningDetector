@@ -39,7 +39,7 @@ while(True):
         refTime = time.time()
         detectedLightening = recogniser.ContainsLightning(image)
         diff = time.time() - refTime
-        print("detect time %1.1f" % (1000 * diff))
+        #("detect time %1.1f" % (1000 * diff))
         
 
     if frameRate.Update() : 
