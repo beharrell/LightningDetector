@@ -1,13 +1,40 @@
 #include "WiFi.h"
 #include "AsyncUDP.h"
 
-const char * ssid = "";
-const char * password = "";
+const char * ssid = "<NetworkId here>";
+const char * password = "<password here>";
 
 AsyncUDP udp;
 bool foundClient = false;
 #define FOCUS_DO  21
 #define SHUTTER_DO 19
+
+void HandleUDPPacket(AsyncUDPPacket packet)
+{
+    Serial.print("UDP Packet Type: ");
+    Serial.print(packet.isBroadcast()?"Broadcast":packet.isMulticast()?"Multicast":"Unicast");
+    Serial.write(packet.data(), packet.length());
+    Serial.println();
+    if (strncmp("FOCUS",(char *)packet.data(),packet.length()) == 0)
+    {
+        Serial.println("Focusing");
+        digitalWrite(FOCUS_DO, true);
+        delay(1000);
+        digitalWrite(FOCUS_DO, false);
+    }
+    else if  (strncmp("SHUTTER",(char *)packet.data(),packet.length()) == 0)
+    {
+        Serial.println("Taking photo");
+        digitalWrite(SHUTTER_DO, true);
+        delay(1000);
+        digitalWrite(SHUTTER_DO, false);
+    }
+
+    //reply to the client
+    foundClient = true;        
+}
+
+
 
 void setup()
 {
@@ -24,34 +51,9 @@ void setup()
         }
     }
     if(udp.listen(1234)) {
-         Serial.print("UDP Listening on IP: ");
+        Serial.print("UDP Listening on IP: ");
         Serial.println(WiFi.localIP());
-        udp.onPacket([](AsyncUDPPacket packet) {
-            Serial.print("UDP Packet Type: ");
-            Serial.print(packet.isBroadcast()?"Broadcast":packet.isMulticast()?"Multicast":"Unicast");
-            Serial.write(packet.data(), packet.length());
-            Serial.println();
-            if (strncmp("FOCUS",(char *)packet.data(),packet.length()) == 0)
-            {
-                Serial.println("Focusing");
-                digitalWrite(FOCUS_DO, true);
-                delay(1000);
-                digitalWrite(FOCUS_DO, false);
-            }
-            else if  (strncmp("SHUTTER",(char *)packet.data(),packet.length()) == 0)
-            {
-                Serial.println("Taking photo");
-                digitalWrite(SHUTTER_DO, true);
-                delay(1000);
-                digitalWrite(SHUTTER_DO, false);
-            }
-
-            //reply to the client
-            foundClient = true;
-            
-        });
-        //Send unicast
-        udp.print("Hello Server!");
+        udp.onPacket(HandleUDPPacket);
     }
 }
 
